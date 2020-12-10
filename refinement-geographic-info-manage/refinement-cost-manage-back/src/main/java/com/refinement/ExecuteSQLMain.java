@@ -48,7 +48,7 @@ public class ExecuteSQLMain {
 
     /**
      * 初始化连接，并创建table
-     * 注意：！！！
+     * 注意：！！
      * 需要启动下 CostManageApplication 服务将sql文件编译到 target 下，否则会找不到文件
      * 运行过程会较慢，稍等片刻吧
      */
