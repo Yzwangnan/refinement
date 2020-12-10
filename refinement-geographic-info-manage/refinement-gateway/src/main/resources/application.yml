@@ -1,0 +1,64 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: refinement-gateway
+  redis:
+    database: 0
+    port: @redis.port@
+    host: @redis.host@
+  cloud:
+    nacos:
+      discovery:
+        server-addr: @nacos.serverAddr@
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: quality_routh
+          uri: lb://refinement-quality
+          predicates:
+            - Path=/quality/**
+
+        - id: login_routh
+          uri: lb://refinement-login
+          predicates:
+            - Path=/login-center/**
+
+        - id: cost_routh
+          uri: lb://refinement-cost
+          predicates:
+            - Path=/cost/**
+
+        - id: oauth_routh
+          uri: lb://refinmement-oauth2
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: 'http://localhost:9004/rsa/publicKey' #配置RSA的公钥访问地址
+secure:
+  ignore:
+    urls: #配置白名单路径
+      - "/actuator/**"
+      - "/quality/user/**"
+      - "/quality/sys/**"
+      - "/quality/project/createProjectId"
+      - "/quality/project/findAll"
+      - "/quality/dept/findAll"
+      - "/quality/project/reportRecord"
+      - "/quality/project/reportInfo"
+      - "/quality/project/workOutput"
+      - "/quality/project/savePreSpecify"
+      - "/auth/oauth/token"
+      - "/login-center/**"
+      - "/cost/common/**"
+#      - "/cost/project/getReportModel"
+#      - "/cost/project/getMonthlyReportTitleList"
+      - "/cost/model/detail"

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ProjectSpecifyMapper">
+
+    <resultMap id="proSpecify" type="com.refinement.group.SpecifyRe">
+        <result property="id" column="id"/>
+        <result property="orderNo" column="orderNo"/>
+        <result property="subitem" column="subitem"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price" column="price"/>
+        <result property="coefficient" column="coefficient"/>
+        <result property="reportnums" column="reportnums"/>
+        <result property="totalCompleted" column="totalCompleted"/>
+        <result property="totalCompletedValue" column="totalCompletedValue"/>
+        <result property="unit" column="unit"/>
+        <!--<result property="completed" column="completed"/>-->
+        <!--<result property="completedValue" column="completedValue"/>-->
+    </resultMap>
+
+    <select id="getSpecifyList" resultMap="proSpecify">
+        SELECT
+            ps.id,
+            ps.orderNo,
+            ps.subitem,
+            ps.quantity,
+            ps.price,
+            ps.coefficient,
+            ps.reportnums,
+            ps.totalCompleted,
+            ps.totalCompletedValue,
+            ps.unit
+        FROM
+            project_specify ps
+        WHERE
+            ps.projectid = #{projectid}
+        ORDER BY
+	        ps.orderNo
+    </select>
+    
+    <insert id="proSpecifyBatchSave" parameterType="com.refinement.entity.ProjectSpecify">
+        insert into
+          project_specify(id, projectid, orderNo, subitem, quantity, price, coefficient, reportnums, unit)
+        values
+          <foreach collection="proSpecList" separator="," item="p">
+              ( NULL,
+                #{p.projectid},
+                #{p.orderNo},
+                #{p.subitem},
+                #{p.quantity},
+                #{p.price},
+                #{p.coefficient},
+                0,
+                #{p.unit} )
+          </foreach>
+    </insert>
+
+    <update id="updateProgress">
+        UPDATE
+            project_specify
+        SET
+            totalCompleted = totalCompleted + #{completed},
+            totalCompletedValue = totalCompletedValue + #{completedValue}
+        WHERE
+            id = #{specifyid}
+    </update>
+</mapper>

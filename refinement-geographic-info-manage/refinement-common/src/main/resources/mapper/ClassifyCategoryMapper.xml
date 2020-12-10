@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ClassifyCategoryMapper">
+
+    <resultMap id="AllCategoryResultMap" type="com.refinement.data.AllClassifyCategoryDO">
+        <result column="oneLevelId" property="id"/>
+        <result column="oneLevelName" property="name"/>
+        <collection property="categoryList" ofType="com.refinement.data.ClassifyCategoryDO">
+            <result column="secondLevelId" property="id"/>
+            <result column="secondLevelName" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="classifyList" parameterType="java.lang.Long" resultType="com.refinement.data.ClassifyCategoryDO">
+        select
+            id, name
+        from
+            project_classify
+        order by id
+    </select>
+
+    <select id="allCategory" resultMap="AllCategoryResultMap">
+        select
+            a.id as oneLevelId, a.name as oneLevelName,
+            b.id as secondLevelId, b.name as secondLevelName
+        from
+            project_classify a
+        left join classify_category b on a.id = b.classify_id
+        order by a.id, b.id
+    </select>
+
+    <select id="categoryList" parameterType="java.lang.Long" resultType="com.refinement.data.ClassifyCategoryDO">
+        select
+            id, name
+        from
+            classify_category
+        where
+            classify_id = #{classifyId}
+        order by id
+    </select>
+
+    <select id="selectClassifyById" parameterType="java.lang.Long" resultType="com.refinement.data.ClassifyCategoryDO">
+        select
+            id, name
+        from
+            project_classify
+        where
+            id = #{classifyId}
+        limit 1
+    </select>
+
+    <select id="selectCategoryById" parameterType="java.lang.Long" resultType="com.refinement.data.ClassifyCategoryDO">
+        select
+            id, name, classify_id  classifyId
+        from
+            classify_category
+        where
+            id = #{categoryId}
+        limit 1
+    </select>
+</mapper>

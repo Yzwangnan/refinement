@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: refinement-cost
+  profiles:
+    active: @profileActive@
+  cloud:
+    nacos:
+      discovery:
+        server-addr: @nacos.serverAddr@
+server:
+  port: 9003
+  servlet:
+    jsp:
+      init-parameters:
+        mappedfile: false
+    session:
+      timeout: 1800
+    context-path: /cost

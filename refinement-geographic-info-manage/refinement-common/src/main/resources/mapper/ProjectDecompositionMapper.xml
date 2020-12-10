@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ProjectDecompositionMapper">
+
+    <select id="oneLevelExport" resultType="com.refinement.data.DecompositionExportDO">
+#         select
+#             d.one_level_name oneLevelName,
+#             d.model_id modelId,
+#             sum(pd.budget_amount) totalBudgetAmount
+#         from
+#         project_decomposition pd LEFT JOIN decomposition d on pd.decomposition_id = d.id
+#         GROUP BY d.model_id;
+        select
+            d.one_level_name oneLevelName,
+            d.model_id modelId,
+            pd.budget_amount totalBudgetAmount
+        from
+            project_decomposition pd LEFT JOIN decomposition d on pd.decomposition_id = d.id
+        where pd.delete_flag = 0
+        and pd.project_id = #{projectId}
+        and d.model_id = #{modelId}
+        and d.`level` = 1
+    </select>
+
+    <select id="listByProjectIdAndLevel" resultType="com.refinement.data.DecompositionLevelExportDO">
+        select
+            d.one_level_name oneLevelName,
+            d.two_level_name twoLevelName,
+            d.three_level_name threeLevelName,
+            d.model_id modelId,
+            d.`level` level,
+            pd.budget_amount budgetAmount,
+            u.username username,
+            pd.id projectDecompositionId
+        from
+        project_decomposition pd
+        LEFT JOIN decomposition d on pd.decomposition_id = d.id
+        LEFT JOIN `project` p ON pd.project_id = p.projectid
+        LEFT JOIN `user` u ON u.id = p.userid
+        WHERE pd.project_id = #{projectId} and pd.delete_flag=0
+        <if test="level!=null">
+            and d.`level` = #{level}
+        </if>
+        <if test="oneLevelName!=null and level == 2">
+            and d.one_level_name= #{oneLevelName}
+        </if>
+        <if test="oneLevelName!=null and level == 3">
+            and d.one_level_name= #{oneLevelName}
+            and d.two_level_name= #{twoLevelName}
+        </if>
+        order by oneLevelName,twoLevelName,threeLevelName
+    </select>
+</mapper>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.DecompositionMapper">
+
+    <insert id="insertAndReturnId" useGeneratedKeys="true" keyProperty="id">
+        insert into decomposition
+            (one_level_name, two_level_name, three_level_name, budget_scale, level,
+             recorder_role_id, auditor_role_id, model_id, parent_id)
+        values (#{oneLevelName}, #{twoLevelName}, #{threeLevelName}, #{budgetScale},
+                #{level}, #{recorderRoleId}, #{auditorRoleId}, #{modelId}, #{parentId})
+    </insert>
+</mapper>

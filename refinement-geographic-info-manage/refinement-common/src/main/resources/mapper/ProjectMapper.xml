@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ProjectMapper">
+
+    <resultMap id="project" type="com.refinement.group.ProjectDept">
+        <result column="id" property="id"/>
+        <result column="projectid" property="projectid"/>
+        <result column="projectname" property="projectname"/>
+        <result column="contractvalue" property="contractvalue"/>
+        <result column="deptid" property="deptid"/>
+        <result column="deptname" property="deptname"/>
+        <result column="startdate" property="startdate"/>
+        <result column="period" property="period"/>
+        <result column="userid" property="userid"/>
+        <result column="reportday" property="reportday"/>
+        <result column="state" property="state"/>
+        <result column="deptCheck" property="deptCheck"/>
+        <result column="pdCheck" property="pdCheck"/>
+        <result column="region" property="region"/>
+        <result column="category" property="category"/>
+    </resultMap>
+
+    <resultMap id="projectTotalByCondition" type="com.refinement.entity.Project">
+        <result column="id" property="id"/>
+        <result column="projectid" property="projectid"/>
+        <result column="projectname" property="projectname"/>
+        <result column="contractvalue" property="contractvalue"/>
+        <result column="deptid" property="deptid"/>
+        <result column="startdate" property="startdate"/>
+        <result column="period" property="period"/>
+        <result column="region" property="region"/>
+        <result column="userid" property="userid"/>
+        <result column="reportday" property="reportday"/>
+        <result column="state" property="state"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="category" property="category"/>
+        <result column="classify_id" property="classifyId"/>
+        <result column="category_id" property="categoryId"/>
+    </resultMap>
+
+
+    <select id="getProjectList" parameterType="com.refinement.group.ProjectPage" resultMap="project">
+        select
+          p.id,
+          p.projectid,
+          p.projectname,
+          p.deptid,
+          p.contractvalue,
+          p.startdate,
+          p.period,
+          p.userid,
+          p.reportday,
+          p.state,
+          p.region,
+          p.category
+        from
+          project p
+        where
+            p.delete_flag = 0
+          <if test="project.projectid != null and project.projectid != ''">
+              and
+                p.projectid = #{project.projectid}
+          </if>
+          <if test="project.state == 0">
+              and not exists (
+                select pc.project_id from project_complete pc where pc.system_type = 1 and p.projectid = pc.project_id
+              )
+          </if>
+          <if test="project.state == 1">
+              and exists (
+                select pc.project_id from project_complete pc where pc.system_type = 1 and p.projectid = pc.project_id and pc.state = 1
+              )
+          </if>
+          <if test="project.state == 2">
+              and exists (
+                select pc.project_id from project_complete pc where pc.system_type = 1 and p.projectid = pc.project_id and pc.state = 2
+              )
+          </if>
+          <if test="project.deptid != null and project.deptid != ''">
+              and
+                p.deptid = #{project.deptid}
+          </if>
+          <if test="project.startdate != null and project.startdate != ''">
+              and
+                p.startdate &gt;= #{project.startdate}
+          </if>
+          <if test="project.enddate != null and project.enddate != ''">
+              and
+                DATE_ADD(p.startdate, interval p.period MONTH) &lt;= #{project.enddate}
+          </if>
+          <if test="project.projectname != null and project.projectname != ''">
+              and
+                p.projectname like "%"#{project.projectname}"%"
+          </if>
+          <if test="project.classifyId != null">
+              and
+                p.classify_id = #{project.classifyId}
+          </if>
+          <if test="project.categoryId != null">
+              and
+                p.category_id = #{project.categoryId}
+          </if>
+        order by
+          p.create_time desc
+    </select>
+
+    <select id="selectRemainWork" resultType="Double">
+        SELECT
+            p.contractvalue * 10000 - sum(ps.totalCompletedValue) AS remaind
+        FROM
+            project_specify ps
+        RIGHT JOIN project p ON p.projectid = ps.projectid
+        WHERE
+            p.delete_flag = 0
+            and ps.projectid = #{projectid}
+        LIMIT 1
+    </select>
+
+    <update id="updateState">
+        UPDATE project
+        SET state = #{state}
+        WHERE
+            projectid = #{projectid}
+    </update>
+
+    <select id="listProjectIds" resultType="java.lang.String">
+        SELECT
+            projectid
+        FROM
+            project
+        WHERE
+            delete_flag = 0
+          and
+            DATE_FORMAT(create_time, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        ORDER BY create_time DESC
+    </select>
+
+    <delete id="removeProject" parameterType="java.lang.String">
+        delete from project
+        where projectid = #{projectid}
+    </delete>
+
+    <select id="getTotalProjectByStateAndDept" parameterType="com.refinement.group.QueryConditionForTotalPro" resultMap="projectTotalByCondition">
+        select
+            p.id,
+            p.projectid,
+            p.projectname,
+            p.contractvalue,
+            p.deptid,
+            p.startdate,
+            p.period,
+            p.region,
+            p.userid,
+            p.reportday,
+            p.state,
+            p.create_time,
+            p.update_time,
+            p.category,
+            p.classify_id,
+            p.category_id
+        from
+            project p
+        where
+            p.delete_flag = 0
+        <if test="queryConditionForTotalPro.state == 0 or queryConditionForTotalPro.state == 2">
+            and
+            p.state = #{queryConditionForTotalPro.state}
+        </if>
+        <if test="queryConditionForTotalPro.state == 1">
+            and
+            p.state in(1, 3, 4, 5)
+        </if>
+        <if test="queryConditionForTotalPro.deptId != null and queryConditionForTotalPro.deptId != ''">
+            and
+            p.deptid = #{queryConditionForTotalPro.deptId}
+        </if>
+    </select>
+
+    <select id="listPage" resultType="com.refinement.entity.Project">
+        select p.id, p.projectid, p.projectname, p.contractvalue, p.deptid, p.startdate,
+               p.period, p.region, p.userid, p.reportday, p.state, p.category, p.classify_id classifyId,
+               p.category_id categoryId, p.create_time createTime, p.update_time updateTime,
+               p.budget_amount budgetAmount, p.system_type systemType, p.model_id modelId
+        from project p
+        where delete_flag = 0
+        <if test="type != null">
+            <if test="type == 0">
+                and not exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id
+                )
+            </if>
+            <if test="type == 1">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 1
+                )
+            </if>
+            <if test="type == 2">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 2
+                )
+            </if>
+        </if>
+        <if test="name != null and name != ''">
+            and p.projectname like concat ('%', #{name}, '%')
+        </if>
+        <if test="categoryId != null">
+            and p.category_id = #{categoryId}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            and p.startdate = #{startTime}
+        </if>
+        <if test="modelId != null">
+            and p.model_id = #{modelId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            and p.deptId = #{deptId}
+        </if>
+    </select>
+
+    <select id="selectCountByModel" resultType="integer">
+        select count(1)
+        from project p
+        where p.delete_flag = 0
+        <if test="type != null">
+            <if test="type == 1">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 1
+                )
+                and p.model_id = #{modelId}
+            </if>
+            <if test="type == 2">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 2
+                )
+                and p.model_id = #{modelId}
+            </if>
+        </if>
+    </select>
+
+
+    <select id="listByStatus" resultType="com.refinement.entity.Project">
+        select p.id, p.projectid, p.projectname, p.contractvalue, p.deptid, p.startdate,
+        p.period, p.region, p.userid, p.reportday, p.state, p.category, p.classify_id classifyId,
+        p.category_id categoryId, p.create_time createTime, p.update_time updateTime,
+        p.budget_amount budgetAmount, p.system_type systemType, p.model_id modelId
+        from project p
+        where p.delete_flag = 0
+        <if test="type != null">
+            <if test="type == 0">
+                and not exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id
+                )
+            </if>
+            <if test="type == 1">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 1
+                )
+            </if>
+            <if test="type == 2">
+                and exists (
+                    select pc.project_id from project_complete pc where pc.system_type = 2 and p.projectid = pc.project_id and pc.state = 2
+                )
+            </if>
+        </if>
+        <if test="deptidList != null">
+            and p.deptid in
+            <foreach collection="deptidList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="projectIdList != null">
+            and p.projectid in
+            <foreach collection="projectIdList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="startDate != null">
+            and p.startdate &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            and p.startdate &lt;= #{endDate}
+        </if>
+        <if test="modelId != null">
+            and p.model_id = #{modelId}
+        </if>
+    </select>
+</mapper>

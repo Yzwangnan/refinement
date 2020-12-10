@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ProjectMonthlyReportMapper">
+
+    <select id="statisticsAllAmount" resultType="java.math.BigDecimal">
+        SELECT SUM(amount) from project_monthly_report
+        WHERE project_decomposition_id=#{projectDecompositionId}
+        AND state = 1
+        GROUP BY project_decomposition_id
+    </select>
+
+    <select id="mothsByProjectId" resultType="java.lang.String">
+        SELECT `month` FROM project_monthly_report WHERE project_id=#{projectId} GROUP BY `month`
+    </select>
+
+    <select id="statisticsMothAmount" resultType="java.math.BigDecimal">
+        SELECT `amount` FROM project_monthly_report WHERE
+        project_decomposition_id=#{projectDecompositionId}
+        and `month` = #{moth}
+        and  state = 1
+    </select>
+
+    <insert id="insertAndReturnId" useGeneratedKeys="true" keyProperty="id">
+        insert into project_monthly_report (project_id, project_decomposition_id, month)
+        values (#{projectId}, #{projectDecompositionId}, #{month})
+    </insert>
+</mapper>

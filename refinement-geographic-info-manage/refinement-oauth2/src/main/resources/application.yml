@@ -1,0 +1,20 @@
+server:
+  port: 9004
+spring:
+  profiles:
+    active: @profileActive@
+  application:
+    name: refinmement-oauth2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: @sentinel.serverAddr@
+  redis:
+    database: 0
+    port: @redis.port@
+    host: @redis.host@
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+logging:
+  level:
+    org.springframework.security: debug

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.refinement.mapper.ProjectReportMapper">
+
+    <select id="selectCurrentMonth" resultType="com.refinement.entity.ProjectReport">
+        SELECT
+            pr.id,
+            pr.projectid,
+            pr.reportnums,
+            pr.deptCheck,
+            pr.deptReason,
+            pr.pdCheck,
+            pr.pdReason,
+            pr.create_time,
+            pr.update_time
+        FROM
+            project_report pr
+        WHERE
+            pr.projectid = #{projectid}
+        AND
+            DATE_FORMAT(pr.create_time, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        LIMIT 1
+    </select>
+
+    <select id="selectAssignReport" resultType="com.refinement.entity.ProjectReport">
+         SELECT
+            pr.id,
+            pr.projectid,
+            pr.reportnums,
+            pr.deptCheck,
+            pr.deptReason,
+            pr.pdCheck,
+            pr.pdReason,
+            pr.create_time,
+            pr.update_time
+        FROM
+            project_report pr
+        WHERE
+            pr.projectid = #{projectid}
+        AND
+            DATE_FORMAT(pr.create_time, '%Y-%m') = #{reportTime}
+        LIMIT 1
+    </select>
+</mapper>
